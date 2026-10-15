@@ -73,13 +73,13 @@ _config = load_config()
 # URLs (constant, not user-configurable)
 BASE_URL = "https://www.coursera.org/api/"
 GRAPHQL_URL = "https://www.coursera.org/graphql-gateway"
-PERPLEXITY_API_URL = "https://api.perplexity.ai/chat/completions"
+PERPLEXITY_API_URL = "https://api.perplexity.ai/v1/agent"
 
 # User-configurable
 COOKIES = _config["cookies"]
 PERPLEXITY_API_KEY = _config.get("perplexity_api_key", "")
 GEMINI_API_KEY = _config.get("gemini_api_key", "")
-PERPLEXITY_MODEL = _config.get("perplexity_model", "sonar-pro")
+PERPLEXITY_MODEL = _config.get("perplexity_model", "high")
 GEMINI_MODEL = _config.get("gemini_model", "gemini-3.1-flash-lite")
 
 HEADERS = {

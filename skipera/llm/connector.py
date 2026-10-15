@@ -1,9 +1,8 @@
 import json
-import httpx
-from ..config import (PERPLEXITY_API_URL, PERPLEXITY_API_KEY,
-                      PERPLEXITY_MODEL, GEMINI_API_KEY, GEMINI_MODEL)
+from ..config import (PERPLEXITY_API_KEY, PERPLEXITY_MODEL, GEMINI_API_KEY, GEMINI_MODEL)
 from google import genai
 from google.genai import types
+from perplexity import Perplexity
 from pydantic import BaseModel
 from typing import Any, List, Literal, Optional
 from loguru import logger
@@ -25,8 +24,7 @@ DEFAULT_RESPONSE_SCHEMA = ResponseList.model_json_schema()
 
 class PerplexityConnector(object):
     def __init__(self):
-        self.API_URL: str = PERPLEXITY_API_URL
-        self.API_KEY: str = PERPLEXITY_API_KEY
+        self.client = Perplexity(api_key=PERPLEXITY_API_KEY)
 
     def get_response(
             self,
@@ -39,24 +37,22 @@ class PerplexityConnector(object):
         """
         logger.debug("Making an API Request to Perplexity..")
         payload = {
-            "model": PERPLEXITY_MODEL,
-            "messages": [
-                {"role": "system", "content": system_prompt},
-                {"role": "user", "content": json.dumps(
+            "preset": PERPLEXITY_MODEL,
+            "input": [
+                {"type": "message", "role": "system", "content": system_prompt},
+                {"type": "message", "role": "user", "content": json.dumps(
                     prompt) if isinstance(prompt, dict) else prompt},
             ],
         }
         if response_schema is not None:
             payload["response_format"] = {
                 "type": "json_schema",
-                "json_schema": {"schema": response_schema}
+                "json_schema": {"name": "response", "schema": response_schema}
             }
 
-        response = httpx.post(url=self.API_URL, headers={
-            "Authorization": f"Bearer {self.API_KEY}"
-        }, json=payload, timeout=60.0).json()
+        resp = self.client.responses.create(**payload)
 
-        content = response["choices"][0]["message"]["content"]
+        content = resp.output_text
         if response_schema is not None:
             return json.loads(content)
         return content.strip()
